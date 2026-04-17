@@ -1,31 +1,23 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 )
 
-func home(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte( "Hello Yemi!"))
-}
+func main () {
+	r := gin.Default()
 
-func viewSnippet(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("I can view here"))
-}
+	// no Route
+	r.NoRoute(func(c *gin.Context){
+		c.String(http.StatusNotFound, "404 page not found")
+	})
 
-func createSnippet(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Create a new Snippet"))
-}
+	// add routers
+	r.GET("/", home)
 
-
-func main() {
-	mux := http.NewServeMux()
-
-	// handlers
-	mux.HandleFunc("/", home)
-	mux.HandleFunc("/view", viewSnippet)
-
-	log.Println("Server is running on Port:8000")
-	err := http.ListenAndServe(":8000", mux)
+	log.Println("Server is running on Port: 4000")
+	err := r.Run()
 	log.Fatal(err)
 }
