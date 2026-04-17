@@ -14,6 +14,10 @@ func main () {
 		c.String(http.StatusNotFound, "404 page not found")
 	})
 
+	r.NoMethod(func(c *gin.Context) {
+		c.String(http.StatusMethodNotFound, "405 Method not Allowed")
+	})
+
 	// add routers
 	r.GET("/", home)
 
