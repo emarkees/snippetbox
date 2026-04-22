@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 	"strconv"
 	"html/template"
@@ -17,15 +16,15 @@ func (app *application) home(c *gin.Context) {
 
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		app.ErrorLog.Println(err.Error())
+		app.serverError(c, err)
 		c.String(http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
 	err = ts.ExecuteTemplate(c.Writer, "base", nil)
 	if err != nil {
-		app.errorLog.Println(err.Error())
-		c.String(http.StatusInternalServerError, "Internal Server Error")
+		app.serverError(c, err)
+		return
 	}
 }
 
@@ -33,7 +32,7 @@ func (app *application)viewSnippet(c *gin.Context) {
 	idx := c.Query("id")
 	id, err := strconv.Atoi(idx)
 	if err != nil || id < 1 {
-		c.String(http.StatusNotFound, "Snippet not found")
+		app.notFound(c)
 		return
 	}
 	c.String(http.StatusOK, "Snippet ID: %d", id)
@@ -42,7 +41,7 @@ func (app *application)viewSnippet(c *gin.Context) {
 func (app *application) createSnippet(c *gin.Context) {
 	if c.Request.Method != http.MethodPost {
 		c.Header("Allow", http.MethodPost)
-		c.String(http.StatusMethodNotAllowed, "Method not Allowed")
+		app.clientError(c, http.StatusMethodNotAllowed)
 		return
 	}
 
