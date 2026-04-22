@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -17,7 +18,6 @@ func (app *application) home(c *gin.Context) {
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
 		app.serverError(c, err)
-		c.String(http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -28,6 +28,26 @@ func (app *application) home(c *gin.Context) {
 	}
 }
 
+func (app *application) createSnippet(c *gin.Context) {
+	if c.Request.Method != http.MethodPost {
+		c.Header("Allow", http.MethodPost)
+		app.clientError(c, http.StatusMethodNotAllowed)
+		return
+	}
+
+	title := "O Grace"
+	content := "O Grace of the Most high\nClimb mount Fuji,\nBut slow, slowly!\n\n- Kabiyyoshi Issa"
+	expires := 9
+
+	id, err := app.snippet.Insert(title, content, expires)
+	if err != nil {
+		app.serverError(c, err)
+		return
+	}
+
+c.Redirect(http.StatusSeeOther, fmt.Sprintf("/snippet/view?id=%d", id))
+}
+
 func (app *application)viewSnippet(c *gin.Context) {
 	idx := c.Query("id")
 	id, err := strconv.Atoi(idx)
@@ -36,14 +56,4 @@ func (app *application)viewSnippet(c *gin.Context) {
 		return
 	}
 	c.String(http.StatusOK, "Snippet ID: %d", id)
-}
-
-func (app *application) createSnippet(c *gin.Context) {
-	if c.Request.Method != http.MethodPost {
-		c.Header("Allow", http.MethodPost)
-		app.clientError(c, http.StatusMethodNotAllowed)
-		return
-	}
-
-	c.String(http.StatusOK, "Snippet created successfully")
 }

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"github.com/emarkees/snippetbox/internal/models"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -14,10 +15,11 @@ import (
 	// web application. For now we'll only include fields for the two custom loggers, but
 	// we'll add more to it as the build progresses.
 
-	type application struct {
-		errorLog *log.Logger
-		infoLog *log.Logger
-	}
+type application struct {
+	errorLog *log.Logger
+	infoLog *log.Logger
+	snippet *models.SnippetModel
+}
 
 func main () {
 
@@ -45,6 +47,7 @@ func main () {
 	app := &application{
 		errorLog: errorLog,
 		infoLog: infoLog,
+		snippet: &models.SnippetModel{DB: db},
 	}
 
 	r := app.routes()
