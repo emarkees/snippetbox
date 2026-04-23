@@ -8,6 +8,8 @@ import (
 
 func (app *application) routes() *gin.Engine {
 	r := gin.New()
+	r.HandleMethodNotAllowed = true
+	r.LoadHTMLGlob("./ui/html/*.tmpl")
 	r.Use(gin.Recovery())
 
 	r.StaticFS("/static", http.Dir("./ui/static"))
@@ -17,7 +19,6 @@ func (app *application) routes() *gin.Engine {
 		c.HTML(http.StatusNotFound, "404.tmpl", gin.H{
 			"message": "Page not found",
 		})
-		// or: c.String(http.StatusNotFound, "Not Found")
 	})
 
 	r.NoMethod(func(c *gin.Context) {

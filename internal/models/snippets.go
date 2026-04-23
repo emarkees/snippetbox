@@ -6,12 +6,10 @@ import (
 	"time"
 )
 
-var ErrNoRecord = errors.New("models: no matching record found")
-
 type Snippet struct {
 	ID      int
-	Title   string
-	Content string
+	Title   sql.NullString
+	Content ssql.NullString
 	Created time.Time
 	Expires time.Time
 }
@@ -42,25 +40,25 @@ func (m *SnippetModel) Insert(title, content string, expiresDays int) (int, erro
 }
 
 func (m *SnippetModel) Get(id int) (*Snippet, error) {
-	stmt := `SELECT id, title, content, created, expires FROM snippets WHERE id = ?`
+	// stmt := `SELECT id, title, content, created, expires FROM snippets WHERE expires > UTC_TIMESTAMP() AND id = ?`
 	
-	row := m.DB.QueryRow(stmt, id)
+	// row := m.DB.QueryRow(stmt, id)
 	
 	s := &Snippet{}
-	err := row.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+	err := m.DB.QueryRow("SELECT...", id).Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoRecord
+		} else {
+			return nil, err
 		}
-		return nil, err
 	}
 	
 	return s, nil
 }
 
 func (m *SnippetModel) Latest() ([]*Snippet, error) {
-	stmt := `SELECT id, title, content, created, expires FROM snippets 
-	         WHERE expires > UTC_TIMESTAMP() ORDER BY id DESC LIMIT 10`
+	stmt := `SELECT id, title, content, created, expires FROM snippets WHERE expires > UTC_TIMESTAMP() ORDER BY id DESC LIMIT 10`
 	
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
@@ -68,6 +66,7 @@ func (m *SnippetModel) Latest() ([]*Snippet, error) {
 	}
 	defer rows.Close()
 	
+	// Initialize an empty slice to hold the Snippet structs.
 	snippets := []*Snippet{}
 	
 	for rows.Next() {
